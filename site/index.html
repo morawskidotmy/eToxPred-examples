@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chemical Database</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#121220;color:#d0d0d8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding:1rem}
+h1{font-size:1.4rem;font-weight:600;margin-bottom:.2rem}
+.subtitle{color:#888;font-size:.85rem;margin-bottom:1rem}
+input[type=text]{width:100%;padding:.6rem .8rem;background:#1e1e30;border:1px solid #333;color:#e0e0e8;font-size:.95rem;border-radius:3px;margin-bottom:.5rem}
+input:focus{outline:none;border-color:#5566aa}
+.stats{font-size:.8rem;color:#666;margin-bottom:1rem}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;padding:.5rem .4rem;border-bottom:1px solid #333;color:#999;cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{color:#bbb}
+th .arrow{font-size:.7rem;margin-left:.2rem}
+td{padding:.4rem;border-bottom:1px solid #1e1e30;vertical-align:top}
+tr:hover td{background:#1a1a2e}
+.smi{font-family:'Courier New',monospace;font-size:.78rem;word-break:break-all;color:#8899bb;max-width:300px}
+.cat{font-size:.75rem}
+.cat span{display:inline-block;padding:1px 5px;margin:1px;border-radius:2px;font-size:.7rem}
+.cat-nootropic{background:#1a3a1a;color:#6c6}
+.cat-carcinogen{background:#3a1a1a;color:#c66}
+.cat-endocrine_disruptor{background:#3a2a1a;color:#ca6}
+.cat-psychoactive{background:#1a1a3a;color:#66c}
+.filters{margin-bottom:1rem;padding:.8rem;background:#161625;border:1px solid #333;border-radius:3px}
+.filter-label{display:inline-flex;align-items:center;margin-right:1.5rem;cursor:pointer;user-select:none;color:#aaa;font-size:.9rem}
+.filter-label input[type=checkbox]{margin-right:.4rem;cursor:pointer;width:16px;height:16px;accent-color:#5566aa}
+.filter-label:hover{color:#ddd}
+.score{font-family:monospace;font-size:.8rem}
+.tri-cell{min-width:170px}
+.tri-wrap{display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.tri-svg{width:92px;height:84px}
+.tri-meta{font-family:monospace;font-size:.68rem;color:#8f8fa8;white-space:nowrap}
+.tri-meta span{display:inline-block;min-width:48px;text-align:left}
+.s-green{color:#5a5}
+.s-yellow{color:#aa5}
+.s-red{color:#a44}
+.guide-toggle{position:fixed;top:50%;right:0;transform:translateY(-50%);background:#161625;border:1px solid #333;border-right:none;color:#888;padding:.6rem .4rem;cursor:pointer;font-size:.9rem;border-radius:3px 0 0 3px;z-index:1000;transition:right .3s ease}
+.guide-toggle:hover{color:#bbb;border-color:#555}
+.guide-toggle .arrow{display:inline-block;transition:transform .3s ease}
+.guide{position:fixed;top:0;right:-400px;width:400px;height:100vh;padding:2rem 1.5rem;background:#161625;border-left:1px solid #222;font-size:.88rem;line-height:1.7;overflow-y:auto;z-index:999;transition:right .3s ease;box-shadow:-5px 0 15px rgba(0,0,0,.3)}
+.guide.open{right:0}
+.guide-toggle.open{right:400px}
+.guide-toggle.open .arrow{transform:rotate(180deg)}
+.guide h2{font-size:1.1rem;margin:1.2rem 0 .4rem;color:#ccc}
+.guide h2:first-child{margin-top:0}
+.guide p{margin:.5rem 0;color:#aaa}
+.guide ul,.guide ol{margin:.5rem 0 .5rem 1.5rem;color:#aaa}
+.guide li{margin:.3rem 0}
+.guide strong{color:#ccc}
+.guide code{background:#1e1e30;padding:1px 4px;border-radius:2px;font-size:.82rem}
+.empty{text-align:center;padding:2rem;color:#555}
+@media(max-width:700px){
+  .smi{max-width:150px}
+  table{font-size:.78rem}
+  td,th{padding:.3rem .2rem}
+  .guide{width:100%;right:-100%}
+  .guide-toggle.open{right:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Chemical Database</h1>
+<p class="subtitle">Search compounds by name. Data from PubChem, regulatory agencies, vendor catalogs.</p>
+<input type="text" id="q" placeholder="Search chemical name..." autofocus>
+<div class="filters" id="filters"></div>
+<div class="stats" id="stats">Loading database...</div>
+<table id="results">
+<thead>
+<tr>
+<th data-col="name">Name <span class="arrow"></span></th>
+<th data-col="smiles">SMILES <span class="arrow"></span></th>
+<th>Category</th>
+<th>Triangle</th>
+<th data-col="tox_score">Tox-score <span class="arrow"></span></th>
+<th data-col="sa_score">SAscore <span class="arrow"></span></th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+<div id="empty" class="empty" style="display:none">No results found.</div>
+
+<button class="guide-toggle" id="guideBtn"><span class="arrow">→</span></button>
+<div class="guide" id="guide">
+
+<h2>What This Is</h2>
+<p>This is a searchable database of chemical compounds pulled from multiple sources — vendor catalogs, regulatory lists, Wikipedia, PsychonautWiki, TripSit, and various government agencies (IARC, EPA, EU REACH, NTP, and others). Each chemical has been looked up on PubChem to get its SMILES notation, then run through EtoxPred to estimate toxicity.</p>
+
+<h2>What the Scores Mean</h2>
+
+<p><strong>Tox-score (0 to 1):</strong> This comes from EtoxPred, a machine learning model trained on FDA-approved drugs (labeled safe) and TOXNET/T3DB chemicals (labeled toxic). It uses Morgan fingerprints — basically a mathematical representation of molecular structure — fed into an Extra Trees classifier. A score near 0 means the molecule looks structurally similar to known safe drugs. A score near 1 means it resembles known toxic compounds. The model gets about 80% accuracy on independent test sets, so treat it as a rough guide, not gospel.</p>
+
+<p>Things to keep in mind:</p>
+<ul>
+<li>The model was trained on general toxicity, not specific endpoints like "will this give you cancer" or "will this mess with your hormones"</li>
+<li>A low Tox-score doesn't mean something is safe to consume. Plenty of FDA-approved drugs are dangerous at the wrong dose</li>
+<li>A high Tox-score doesn't mean something will definitely hurt you. The model has blind spots</li>
+<li>Natural products tend to score higher (0.5+) even when they're harmless, because the training data skews toward synthetic drug-like molecules</li>
+</ul>
+
+<p><strong>SAscore (Synthetic Accessibility, ~0 to 1 after transformation):</strong> How easy or hard the molecule would be to synthesize in a lab. Lower values mean easier to make. This is based on fragment analysis — common molecular fragments that show up a lot in known synthetic compounds get better scores. Unusual ring systems, lots of stereocenters, and weird functional groups push the score up.</p>
+
+<p>Why this matters:</p>
+<ul>
+<li>Easy-to-synthesize compounds (low SAscore) are more likely to actually be available as real products</li>
+<li>Hard-to-synthesize compounds are more expensive and less likely to be what vendors claim they are</li>
+<li>If a vendor is selling something with a very high SAscore cheaply, be skeptical</li>
+</ul>
+
+<h2>Categories</h2>
+<p>Chemicals can appear in multiple categories:</p>
+<ul>
+<li><strong>Nootropic:</strong> Scraped from vendor sites (nootropics suppliers, supplement stores, online pharmacies, peptide vendors), Wikipedia nootropic lists, and Examine.com</li>
+<li><strong>Carcinogen:</strong> From IARC Group 1/2A lists, NTP Report on Carcinogens, EU CLP regulation, FDA lists, California Prop 65</li>
+<li><strong>Endocrine Disruptor:</strong> From EU REACH SVHC list, EPA EDSP, TEDX list, Wikipedia</li>
+<li><strong>Psychoactive:</strong> From PsychonautWiki substance index, TripSit factsheets, Wikipedia drug lists</li>
+</ul>
+
+<p>A chemical appearing in the carcinogen list doesn't necessarily mean it causes cancer in humans at normal exposure levels — IARC classifications are hazard-based, not risk-based. Similarly, something listed as an endocrine disruptor means it has the <em>potential</em> to interfere with hormonal systems, but dose and exposure route matter enormously.</p>
+
+<h2>How to Use This</h2>
+<ol>
+<li>Search for a chemical you're curious about</li>
+<li>Check which categories it falls into — if something you're considering taking shows up as both a nootropic AND a carcinogen, that's worth knowing</li>
+<li>Look at the Tox-score as a rough indicator — above 0.6, dig deeper before putting it in your body</li>
+<li>Cross-reference with actual research. This database is a starting point, not medical advice</li>
+<li>The SMILES string can be pasted into <a href="https://pubchem.ncbi.nlm.nih.gov" style="color:#5566aa">PubChem</a> to find the full compound page with safety data, research papers, and more</li>
+</ol>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+<script>
+(async function(){
+  const config = {locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}`};
+  const SQL = await initSqlJs(config);
+
+  let db;
+  try {
+    const resp = await fetch('chemicals.db');
+    const buf = await resp.arrayBuffer();
+    db = new SQL.Database(new Uint8Array(buf));
+  } catch(e) {
+    document.getElementById('stats').textContent = 'Error loading database: ' + e.message;
+    return;
+  }
+
+  const total = db.exec("SELECT COUNT(*) FROM chemicals")[0].values[0][0];
+  document.getElementById('stats').textContent = total.toLocaleString() + ' chemicals in database';
+
+  let sortCol = 'name', sortDir = 'asc';
+  let selectedCategories = new Set(['nootropic', 'carcinogen', 'endocrine_disruptor', 'psychoactive']);
+  const q = document.getElementById('q');
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('empty');
+  const filtersDiv = document.getElementById('filters');
+
+  const categories = ['nootropic', 'carcinogen', 'endocrine_disruptor', 'psychoactive'];
+
+  function initFilters() {
+    filtersDiv.innerHTML = categories.map(cat => `
+      <label class="filter-label">
+        <input type="checkbox" data-category="${cat}" checked>
+        ${cat.replace('_', ' ')}
+      </label>
+    `).join('');
+
+    document.querySelectorAll('input[data-category]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) selectedCategories.add(cb.dataset.category);
+        else selectedCategories.delete(cb.dataset.category);
+        search();
+      });
+    });
+  }
+
+  function scoreClass(v) {
+    if (v === null || v === undefined) return '';
+    if (v < 0.3) return 's-green';
+    if (v <= 0.6) return 's-yellow';
+    return 's-red';
+  }
+
+  function catBadges(cat) {
+    if (!cat) return '';
+    return cat.split(',').map(c => {
+      const cl = c.trim();
+      return `<span class="cat-${cl}">${cl}</span>`;
+    }).join('');
+  }
+
+  function fmtScore(v) {
+    return (v !== null && v !== undefined) ? v.toFixed(3) : '—';
+  }
+
+  function clamp01(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return null;
+    return Math.max(0, Math.min(1, n));
+  }
+
+  function makeTriangle(carc, endo, psych) {
+    const c = clamp01(carc), e = clamp01(endo), p = clamp01(psych);
+    if (c === null || e === null || p === null) return '—';
+    const top = [46, 10];
+    const left = [14, 68];
+    const right = [78, 68];
+    const center = [(top[0] + left[0] + right[0]) / 3, (top[1] + left[1] + right[1]) / 3];
+    const scalePoint = (vertex, value) => [
+      center[0] + (vertex[0] - center[0]) * value,
+      center[1] + (vertex[1] - center[1]) * value
+    ];
+    const [cpX, cpY] = scalePoint(top, c);
+    const [epX, epY] = scalePoint(left, e);
+    const [ppX, ppY] = scalePoint(right, p);
+    const points = `${cpX.toFixed(1)},${cpY.toFixed(1)} ${epX.toFixed(1)},${epY.toFixed(1)} ${ppX.toFixed(1)},${ppY.toFixed(1)}`;
+    return `<div class="tri-wrap">
+      <svg class="tri-svg" viewBox="0 0 92 84" aria-label="Carcinogenic endocrine psychoactive triangle">
+        <polygon points="${top[0]},${top[1]} ${left[0]},${left[1]} ${right[0]},${right[1]}" fill="none" stroke="#3f3f5a" stroke-width="1.1"/>
+        <line x1="${center[0]}" y1="${center[1]}" x2="${top[0]}" y2="${top[1]}" stroke="#2d2d45" stroke-width=".9"/>
+        <line x1="${center[0]}" y1="${center[1]}" x2="${left[0]}" y2="${left[1]}" stroke="#2d2d45" stroke-width=".9"/>
+        <line x1="${center[0]}" y1="${center[1]}" x2="${right[0]}" y2="${right[1]}" stroke="#2d2d45" stroke-width=".9"/>
+        <polygon points="${points}" fill="rgba(120,164,255,.38)" stroke="#8db0ff" stroke-width="1.4"/>
+        <text x="${top[0]}" y="7" fill="#d48888" font-size="7" text-anchor="middle">C</text>
+        <text x="${left[0]-6}" y="${left[1]+2}" fill="#d4bf88" font-size="7" text-anchor="middle">E</text>
+        <text x="${right[0]+6}" y="${right[1]+2}" fill="#a5a7ff" font-size="7" text-anchor="middle">P</text>
+      </svg>
+      <div class="tri-meta"><span>C:${c.toFixed(2)}</span><span>E:${e.toFixed(2)}</span><span>P:${p.toFixed(2)}</span></div>
+    </div>`;
+  }
+
+  function search() {
+    const term = q.value.trim();
+    let sql, params;
+    const categoryFilter = Array.from(selectedCategories).map(() => "category LIKE ?").join(" OR ");
+    const categoryParams = Array.from(selectedCategories);
+    
+    if (term) {
+      sql = `SELECT name, smiles, category, tox_score, sa_score, carc_score, endo_score, psych_score FROM chemicals WHERE name LIKE ? AND (${categoryFilter}) ORDER BY ${sortCol} ${sortDir} LIMIT 200`;
+      params = ['%' + term + '%', ...categoryParams.map(c => '%' + c + '%')];
+    } else {
+      sql = `SELECT name, smiles, category, tox_score, sa_score, carc_score, endo_score, psych_score FROM chemicals WHERE (${categoryFilter}) ORDER BY ${sortCol} ${sortDir} LIMIT 200`;
+      params = categoryParams.map(c => '%' + c + '%');
+    }
+    let rows;
+    try {
+      const res = db.exec(sql, params);
+      rows = res.length ? res[0].values : [];
+    } catch(e) { rows = []; }
+
+    if (!rows.length) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    tbody.innerHTML = rows.map(r => {
+      const [name, smiles, category, tox, sa, carc, endo, psych] = r;
+      return `<tr>
+        <td>${esc(name)}</td>
+        <td class="smi">${esc(smiles || '')}</td>
+        <td class="cat">${catBadges(category)}</td>
+        <td class="tri-cell">${makeTriangle(carc, endo, psych)}</td>
+        <td class="score ${scoreClass(tox)}">${fmtScore(tox)}</td>
+        <td class="score ${scoreClass(sa)}">${fmtScore(sa)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  q.addEventListener('input', search);
+
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortCol = col; sortDir = 'asc'; }
+      document.querySelectorAll('th .arrow').forEach(a => a.textContent = '');
+      th.querySelector('.arrow').textContent = sortDir === 'asc' ? '▲' : '▼';
+      search();
+    });
+  });
+
+  document.getElementById('guideBtn').addEventListener('click', function(){
+    const g = document.getElementById('guide');
+    g.classList.toggle('open');
+    this.classList.toggle('open');
+  });
+
+  initFilters();
+  search();
+})();
+</script>
+</body>
+</html>
