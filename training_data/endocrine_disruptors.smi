@@ -65,12 +65,10 @@ CC12C=CC3=C4CCC(=O)C=C4CCC3C1CCC2(CC=C)O	Altrenogest
 CCC1(CCC(=O)NC1=O)C2=CC=C(C=C2)N	Aminoglutethimide
 C1=NNC(=N1)N	Amitrole
 CC1(C(N2C(S1)C(C2=O)NC(=O)C(C3=CC=C(C=C3)O)N)C(=O)O)C	Amoxicillin
-CC(CC1=CC=CC=C1)N	Amphetamine
 CC1(C(N2C(S1)C(C2=O)NC(=O)C(C3=CC=CC=C3)N)C(=O)O)C	Ampicillin
 CC(C)(C#N)C1=CC(=CC(=C1)CN2C=NC=N2)C(C)(C)C#N	Anastrozole
 C1=CC=C2C=C3C=CC=CC3=CC2=C1	Anthracene
 CNC(=O)C1=C(C=C(C=C1)N2C(=S)N(C(=O)C23CCC3)C4=CC(=C(N=C4)C#N)C(F)(F)F)F	Apalutamide
-C1=CC=C(C=C1)C(C2=CC=CC=C2)S(=O)CC(=O)N	Armodafinil
 C1=CC(=CC(=C1)Cl)C2=CC(=CC(=C2)Cl)Cl	Aroclor 1016
 C1=CC(=C(C(=C1)Cl)Cl)C2=C(C=C(C=C2)Cl)Cl	Aroclor 1242
 C1=CC(=C(C(=C1)Cl)Cl)C2=C(C(=C(C=C2)Cl)Cl)Cl	Aroclor 1254
@@ -102,7 +100,6 @@ COC1=CC(=C(C=C1)C(=O)C2=CC=CC=C2)O	Benzophenone-3
 C1=CC2=C(C=C1C(=O)C3=CC4=C(C=C3)C(=O)OC4=O)C(=O)OC2=O	Benzophenone tetracarboxylic dianhydride
 C1=CC=C2C(=C1)N=CS2	Benzothiazole
 C1=CC2=NNN=C2C=C1	Benzotriazole
-CC(CC1=CC=CC=C1)N(C)CC2=CC=CC=C2	Benzphetamine
 CCCCOC(=O)C1=CC=CC=C1C(=O)OCC2=CC=CC=C2	Benzyl butyl phthalate
 CC1CCCC(CCCC=CC2=C(C(=CC(=C2)O)O)C(=O)O1)O	Beta-Zearalenol
 CC(C)(C(=O)O)OC1=CC=C(C=C1)CCNC(=O)C2=CC=C(C=C2)Cl	Bezafibrate
@@ -258,7 +255,6 @@ C(CO)NCCO	Diethanolamine
 CC(=C)C(=O)OCCOCCOC(=O)C(=C)C	Diethylene glycol dimethacrylate
 CCCCC(CC)COC(=O)C1=CC=CC=C1C(=O)OCC(CC)CCCC	Diethylhexyl phthalate
 CCOC(=O)C1=CC=CC=C1C(=O)OCC	diethyl phthalate
-CCN(CC)C(C)C(=O)C1=CC=CC=C1	Diethylpropion
 CCC(=C(CC)C1=CC=C(C=C1)O)C2=CC=C(C=C2)O	Diethylstilbestrol
 CCC(=C(CC)C1=CC=C(C=C1)OC(=O)CC)C2=CC=C(C=C2)OC(=O)CC	Diethylstilbestrol dipropionate
 CCOC(=O)C1=CC=C(C=C1)C(=O)OCC	Diethyl terephthalate
@@ -301,7 +297,6 @@ CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O	Diphenylolpropane
 C1C(C(OC1N2C=NC3=C2N=CNC3=O)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O	DITP
 CCCCCCCCCCCCCOC(=O)C1=CC=CC=C1C(=O)OCCCCCCCCCCCCC	ditridecyl phthalate
 CCCCCCCCCCCOC(=O)C1=CC=CC=C1C(=O)OCCCCCCCCCCC	diundecyl phthalate
-CN(C)CCC1=CNC2=CC=CC=C21	DMT
 C1CN(CCN(C1)N=O)N=O	DNHP
 CCCCCCCCOC(=O)C1=CC=CC=C1C(=O)OCCCCCCCC	DNOP
 CC(C)C1=C(C(=CC(=C1)[N+](=O)[O-])[N+](=O)[O-])O	DNPP
@@ -327,7 +322,6 @@ CCN1CCN(CC1)C2=C(C=C3C(=C2)N(C=C(C3=O)C(=O)O)C4CC4)F	Enrofloxacin
 C1=CC(=CC(=C1)O)CC(CO)C(CC2=CC(=CC=C2)O)CO	Enterodiol
 C1C(C(C(=O)O1)CC2=CC(=CC=C2)O)CC3=CC(=CC=C3)O	Enterolactone
 CC1(C(=O)N(C(=S)N1C2=CC(=C(C=C2)C(=O)NC)F)C3=CC(=C(C=C3)C#N)C(F)(F)F)C	Enzalutamide
-CC(C(C1=CC=CC=C1)O)NC	Ephedrine
 C1CC2C(CC1N2)C3=CN=C(C=C3)Cl	epibatidine
 C1C(O1)CCl	epichlorohydrin
 CNCC(C1=CC(=C(C=C1)O)O)O	Epinephrine
@@ -366,7 +360,6 @@ C(C(C(C(F)(F)Cl)(F)F)(F)F)(C(C(OC(C(F)(F)S(=O)(=O)O)(F)F)(F)F)(F)F)(F)F	F-53B
 C1=CC=C(C(=C1)C(C2=CC=C(C=C2)Cl)(C3=CN=CN=C3)O)Cl	Fenarimol
 C1=CC=C(C=C1)C(CCC2=CC=C(C=C2)Cl)(CN3C=NC=N3)C#N	Fenbuconazole
 CC(C)(C[Sn](CC(C)(C)C1=CC=CC=C1)(CC(C)(C)C2=CC=CC=C2)O[Sn](CC(C)(C)C3=CC=CC=C3)(CC(C)(C)C4=CC=CC=C4)CC(C)(C)C5=CC=CC=C5)C6=CC=CC=C6	Fenbutatin oxide
-CCNC1C2CCC(C2)C1C3=CC=CC=C3	Fencamfamin
 CC1=C(C=CC(=C1)OP(=S)(OC)OC)[N+](=O)[O-]	Fenitrothion
 CC(C)OC(=O)C(C)(C)OC1=CC=C(C=C1)C(=O)C2=CC=C(C=C2)Cl	Fenofibrate
 CC(C(=O)O)OC1=CC(=C(C=C1Cl)Cl)Cl	Fenoprop
@@ -488,7 +481,6 @@ CC12CCC3C(C1CCC2(C#C)O)CCC4=C3C=CC(=C4)OC	Mestranol
 CC1=C(C(=CC=C1)C)N(C(C)C(=O)OC)C(=O)COC	Metalaxyl
 CC1(CCC(C1(CN2C=NC=N2)O)CC3=CC=C(C=C3)Cl)C	Metconazole
 CC(=C)C(=O)O	Methacrylic acid
-CC(CC1=CC=CC=C1)NC	Methamphetamine
 CC12CCC3C(C1CCC2(C)O)CCC4=CC(=O)C=CC34C	Methandienone
 CC12CCC3C(C1CCC2(C)O)CCC4=CC(=O)C=CC34C	Methandrostenolone
 CC(=NOC(=O)NC)SC	Methomyl
@@ -497,7 +489,6 @@ C(Cl)Cl	Methylene chloride
 CC(=C)C(=O)OC	Methyl methacrylate
 CC1=CC=CC2=CC=CC=C12	Methylnaphthalene
 COC(=O)C1=CC=C(C=C1)O	Methylparaben
-COC(=O)C(C1CCCCN1)C2=CC=CC=C2	Methylphenidate
 CC(C)(C)OC	Methyl tertiary-butyl ether
 CC12CCC(=O)C=C1CCC3C2CCC4(C3CCC4(C)O)C	Methyltestosterone
 CCC1=CC=CC(=C1N(C(C)COC)C(=O)CCl)C	Metolachlor
@@ -513,7 +504,6 @@ CN(C)C1C2CC3CC4=C(C=CC(=C4C(=C3C(=O)C2(C(=C(C1=O)C(=O)N)O)O)O)O)N(C)C	Minocyclin
 C12(C3(C4(C5(C3(C(C1(C5(C2(C4(Cl)Cl)Cl)Cl)Cl)(Cl)Cl)Cl)Cl)Cl)Cl)Cl	mirex
 CC1(C2CC3(CC(=O)C(C2C3O)(C4=COC5=C(C41)C=CC(=C5)O)O)O)C	Miroestrol
 C1=CC=C(C(=C1)C(C2=CC=C(C=C2)Cl)C(Cl)Cl)Cl	Mitotane
-C1=CC=C(C=C1)C(C2=CC=CC=C2)S(=O)CC(=O)N	Modafinil
 C(CO)N	Monoethanolamine
 CC(C)(C)OC	MTBE
 CCCCC(CN1C=NC=N1)(C#N)C2=CC=C(C=C2)Cl	Myclobutanil
@@ -529,7 +519,6 @@ CN(C)N=O	NDMA
 CCCN(CCC)N=O	NDPA
 C1=CC=C(C=C1)N(C2=CC=CC=C2)N=O	NDPhA
 CC(=C)C(=O)OCC(C)(C)COC(=O)C(=C)C	Neopentyl glycol dimethacrylate
-CN1CCCC1C2=CN=CC=C2	Nicotine
 CC1(C(=O)N(C(=O)N1)C2=CC(=C(C=C2)[N+](=O)[O-])C(F)(F)F)C	Nilutamide
 [N+](=O)([O-])[O-]	Nitrate
 C1=CC(=CC=C1[N+](=O)[O-])OC2=C(C=C(C=C2)Cl)Cl	Nitrofen
@@ -599,7 +588,6 @@ C1=CC(=C(C=C1C2=CC(=C(C=C2)Cl)Cl)Cl)Cl	PCB-77
 C1(=C(C(=C(C(=C1Cl)Cl)Cl)Cl)Cl)[N+](=O)[O-]	PCNB
 C1=CC2=C(C=C1S(=O)(=O)O)C3=NC4=NC(=NC5=NC(=NC6=C7C=CC(=CC7=C(N6)N=C2N3)S(=O)(=O)O)C8=C5C=CC(=C8)S(=O)(=O)O)C9=C4C=CC(=C9)S(=O)(=O)O	PCTs
 C(CO)O	PEG
-C1=CC=C(C=C1)C2C(=O)N=C(O2)N	Pemoline
 CCCC(CN1C=NC=N1)C2=C(C=C(C=C2)Cl)Cl	Penconazole
 CCC(CC)NC1=C(C=C(C(=C1[N+](=O)[O-])C)C)[N+](=O)[O-]	Pendimethalin
 CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C	Penicillin G
@@ -630,12 +618,9 @@ C(C(C(C(C(F)(F)S(=O)(=O)O)(F)F)(F)F)(F)F)(C(C(C(F)(F)F)(F)F)(F)F)(F)F	PFOS
 C(C(C(C(C(F)(F)S(=O)(=O)N)(F)F)(F)F)(F)F)(C(C(C(F)(F)F)(F)F)(F)F)(F)F	PFOSA
 C(C(C(C(C(F)(F)S(=O)(=O)F)(F)F)(F)F)(F)F)(C(C(C(F)(F)F)(F)F)(F)F)(F)F	PFOSF
 C1=CC=C2C(=C1)C=CC3=CC=CC=C32	Phenanthrene
-CC1C(OCCN1C)C2=CC=CC=C2	Phendimetrazine
 C1=CC=C(C=C1)O	phenol
 [CH]C1=C(C(=CC=C1)O[CH])O	Phenolic resin
-CC(C)(CC1=CC=CC=C1)N	Phentermine
 CC1=CC(=C(C(=C1)C)C(=O)P(=O)(C2=CC=CC=C2)C(=O)C3=C(C=C(C=C3C)C)C)C	Phenyl bis(2,4,6-trimethylbenzoyl)phosphine oxide
-CNCC(C1=CC(=CC=C1)O)O	Phenylephrine
 C1=C(C=C(C=C1O)O)O	Phloroglucinol
 COP(=S)(OC)SCN1C(=O)C2=CC=CC=C2C1=O	Phosmet
 C1=CC=C(C(=C1)C(=O)[O-])C(=O)[O-]	Phthalate
@@ -656,12 +641,10 @@ CCCC1COC(O1)(CN2C=NC=N2)C3=C(C=C(C=C3)Cl)Cl	Propiconazole
 CC(C)OC1=CC=CC=C1OC(=O)NC	Propoxur
 CC1CO1	Propylene oxide
 CCCOC(=O)C1=CC(=C(C(=C1)O)O)O	Propyl gallate
-CC(CC1CCCCC1)NC	Propylhexedrine
 CCCOC(=O)C1=CC=C(C=C1)O	Propylparaben
 CCCC1=CC(=O)NC(=S)N1	Propylthiouracil
 CC(C)(C#C)NC(=O)C1=CC(=CC(=C1)Cl)Cl	Propyzamide
 C1CC1(C(CC2=CC=CC=C2Cl)(CN3C(=S)N=CN3)O)Cl	Prothioconazole
-CC(C(C1=CC=CC=C1)O)NC	Pseudoephedrine
 [Pu]	PU
 C=CO	PVA
 C=CN1CCCC1=O	PVP
@@ -819,3 +802,4 @@ CCN(CC)C(=S)[S-].CCN(CC)C(=S)[S-].[Zn+2]	Zinc diethyldithiocarbamate
 CN(C)C(=S)[S-].CN(C)C(=S)[S-].[Zn+2]	Zinc dimethyldithiocarbamate
 C(CNC(=S)[S-])NC(=S)[S-].[Zn+2]	Zineb
 CN(C)C(=S)[S-].CN(C)C(=S)[S-].[Zn+2]	Ziram
+CC1=C(C=CC(=C1)SCC2=C(N=C(S2)C3=CC=C(C=C3)C(F)(F)F)C)OCC(=O)O	Cardarine

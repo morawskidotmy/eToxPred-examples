@@ -1,0 +1,135 @@
+name: Update Chemical Statistics
+
+on:
+  push:
+    paths:
+      - 'training_data/*.smi'
+      - 'site/chemicals.db'
+      - 'etoxpred/custom_scores.csv'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Count chemicals
+        id: count
+        run: |
+          # Count from training data (raw entries)
+          TOTAL_TRAINING=$(wc -l training_data/*.smi | tail -1 | awk '{print $1}')
+          echo "training_total=$TOTAL_TRAINING" >> $GITHUB_OUTPUT
+          
+          # Count from database if it exists (unique deduplicated)
+          if [ -f "site/chemicals.db" ]; then
+            DB_COUNT=$(python3 -c "
+          import sqlite3
+          conn = sqlite3.connect('site/chemicals.db')
+          c = conn.cursor()
+          count = c.execute('SELECT COUNT(*) FROM chemicals').fetchone()[0]
+          conn.close()
+          print(count)
+          ")
+            echo "db_count=$DB_COUNT" >> $GITHUB_OUTPUT
+          else
+            echo "db_count=0" >> $GITHUB_OUTPUT
+          fi
+          
+          # Count individual categories
+          CARC=$(wc -l training_data/carcinogens.smi | awk '{print $1}')
+          ENDO=$(wc -l training_data/endocrine_disruptors.smi | awk '{print $1}')
+          NOOT=$(wc -l training_data/nootropics.smi | awk '{print $1}')
+          PSYCH=$(wc -l training_data/psychoactive_drugs.smi | awk '{print $1}')
+          
+          echo "carc=$CARC" >> $GITHUB_OUTPUT
+          echo "endo=$ENDO" >> $GITHUB_OUTPUT
+          echo "noot=$NOOT" >> $GITHUB_OUTPUT
+          echo "psych=$PSYCH" >> $GITHUB_OUTPUT
+          
+          # Calculate display number (rounded to nearest hundred)
+          DISPLAY=$(python3 -c "print(int(round($DB_COUNT if $DB_COUNT > 0 else $TOTAL_TRAINING, -2)))")
+          echo "display=$DISPLAY" >> $GITHUB_OUTPUT
+      
+      - name: Update README.md
+        run: |
+          # Update badge count
+          sed -i "s/chemicals-[0-9]*%2B-blue/chemicals-${{ steps.count.outputs.display }}%2B-blue/" README.md
+          
+          # Update intro line
+          sed -i "s/Browse [0-9,]*+ unique chemicals/Browse ${{ steps.count.outputs.display }}+ unique chemicals/" README.md
+          
+          # Update feature line
+          sed -i "s/\*\*[0-9,]*+ Chemical Compounds\*\*/\*\*${{ steps.count.outputs.display }}+ Chemical Compounds\*\*/" README.md
+          
+          # Update training entries count
+          sed -i "s/([0-9,]*+ training entries,/(${{ steps.count.outputs.training_total }} training entries,/" README.md
+          
+          # Update category counts in table
+          sed -i "s/| \*\*Nootropics\*\* | [0-9,]* |/| **Nootropics** | ${{ steps.count.outputs.noot }} |/" README.md
+          sed -i "s/| \*\*Psychoactive Drugs\*\* | [0-9,]* |/| **Psychoactive Drugs** | ${{ steps.count.outputs.psych }} |/" README.md
+          sed -i "s/| \*\*Carcinogens\*\* | [0-9,]* |/| **Carcinogens** | ${{ steps.count.outputs.carc }} |/" README.md
+          sed -i "s/| \*\*Endocrine Disruptors\*\* | [0-9,]* |/| **Endocrine Disruptors** | ${{ steps.count.outputs.endo }} |/" README.md
+          
+          # Update file counts in project structure
+          sed -i "s/carcinogens\.smi *# [0-9,]* known carcinogens/carcinogens.smi            # ${{ steps.count.outputs.carc }} known carcinogens/" README.md
+          sed -i "s/endocrine_disruptors\.smi *# [0-9,]* endocrine disruptors/endocrine_disruptors.smi   # ${{ steps.count.outputs.endo }} endocrine disruptors/" README.md
+          sed -i "s/nootropics\.smi *# [0-9,]* nootropic compounds/nootropics.smi             # ${{ steps.count.outputs.noot }} nootropic compounds/" README.md
+          sed -i "s/psychoactive_drugs\.smi *# [0-9,]* psychoactive substances/psychoactive_drugs.smi     # ${{ steps.count.outputs.psych }} psychoactive substances/" README.md
+      
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --quiet README.md || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git commit -m "chore: update chemical statistics [skip ci]
+
+          - Database count: ${{ steps.count.outputs.db_count }} chemicals
+          - Training data: ${{ steps.count.outputs.training_total }} entries
+          - Carcinogens: ${{ steps.count.outputs.carc }}
+          - Endocrine Disruptors: ${{ steps.count.outputs.endo }}
+          - Nootropics: ${{ steps.count.outputs.noot }}
+          - Psychoactive Drugs: ${{ steps.count.outputs.psych }}
+          
+          Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git push
+      
+      - name: Summary
+        run: |
+          echo "## Chemical Statistics Updated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Database (unique) | ${{ steps.count.outputs.db_count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Training (total) | ${{ steps.count.outputs.training_total }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Display (rounded) | ${{ steps.count.outputs.display }}+ |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### By Category" >> $GITHUB_STEP_SUMMARY
+          echo "| Category | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Carcinogens | ${{ steps.count.outputs.carc }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Endocrine Disruptors | ${{ steps.count.outputs.endo }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Nootropics | ${{ steps.count.outputs.noot }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Psychoactive Drugs | ${{ steps.count.outputs.psych }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_changes.outputs.changed }}" == "true" ]; then
+            echo "✅ README.md updated with new statistics" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No changes needed" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,0 +1,30 @@
+name: Create PR from master to main
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          base: main
+          branch: master
+          title: "Merge master into main"
+          body: |
+            Automated PR to merge changes from `master` into `main`.
+            
+            This PR was created automatically after a push to `master`.
+          labels: automated
+          delete-branch: false

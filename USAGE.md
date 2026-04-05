@@ -25,36 +25,30 @@ python3 -m http.server 8000
 
 ### Adding New Chemicals
 
-1. **Create a text file with chemical names** (one per line):
+1. **Add chemical names to an existing category file**:
 ```bash
-echo "Morphine" > new_drugs.txt
-echo "Codeine" >> new_drugs.txt
-echo "Thebaine" >> new_drugs.txt
+echo "Morphine\tCC1C2CC3=C(C1OC4=C2C(=C(C=C4)O)C2=C3C(=O)CCC2" >> training_data/psychoactive_drugs.smi
+echo "Codeine\tCOC1=C(O)C=C2CC3C4C(CC2=C1)OC5=C4C(=CC(=C5)O)CC3" >> training_data/psychoactive_drugs.smi
 ```
 
-2. **Fetch SMILES from PubChem**:
+2. **Rebuild everything**:
 ```bash
-python3 scripts/fetch_smiles.py new_drugs.txt training_data/new_drugs.smi
+cd scripts
+
+# Rebuild both models and database (full rebuild)
+python3 rebuild_all.py
+
+# Or rebuild only the database (faster, uses existing models)
+python3 rebuild_all.py --db-only
+
+# Or retrain only the models (skip database rebuild)
+python3 rebuild_all.py --models-only
 ```
 
-3. **Update the build script** to include your new category:
-Edit `scripts/build_db.py` and add:
-```python
-CATEGORIES = {
-    'nootropics.smi': 'nootropic',
-    'carcinogens.smi': 'carcinogen',
-    'endocrine_disruptors.smi': 'endocrine_disruptor',
-    'psychoactive_drugs.smi': 'psychoactive',
-    'new_drugs.smi': 'opioid',  # Add this line
-}
-```
-
-4. **Rebuild the database**:
-```bash
-python3 scripts/build_db.py
-```
-
-5. **Reload the web interface** to see new chemicals
+This will:
+- Retrain all classification models
+- Score all compounds (including new ones)
+- Rebuild the SQLite database
 
 ### Querying the Database Directly
 
@@ -86,19 +80,16 @@ sqlite3 -header -csv site/chemicals.db \
 
 ### Batch Processing
 
-Process multiple chemical lists at once:
+Process multiple chemical lists at once by editing the `.smi` files in `training_data/`:
 
 ```bash
 #!/bin/bash
-# batch_fetch.sh
+# Add chemicals to existing categories
+cat new_stimulants.smi >> training_data/psychoactive_drugs.smi
+cat new_carcinogens.smi >> training_data/carcinogens.smi
 
-for category in stimulants depressants hallucinogens; do
-    python3 scripts/fetch_smiles.py \
-        sources/${category}.txt \
-        training_data/${category}.smi
-done
-
-python3 scripts/build_db.py
+# Rebuild everything
+cd scripts && python3 rebuild_all.py
 ```
 
 ## Integration Examples
@@ -151,17 +142,18 @@ db.close();
 
 ### Database Not Loading
 - Check that `chemicals.db` exists in the `site/` folder
-- Clear browser cache and reload
+- Clear browser cache and reload (or press Shift+C in the interface)
 - Check browser console for errors (F12)
 
-### SMILES Fetch Failing
-- PubChem API may be rate-limiting: increase sleep time in `fetch_smiles.py`
-- Chemical name might be spelled incorrectly
-- Try searching PubChem manually first to verify the compound exists
+### SMILES Format Issues
+- Ensure `.smi` files are tab-separated: `SMILES<tab>Name`
+- No empty lines between entries
+- Use canonical SMILES from PubChem when possible
 
-### Build Script Errors
+### Rebuild Script Errors
 - Ensure all `.smi` files are tab-separated (not spaces)
-- Check that file paths in `CATEGORIES` dict match actual files
+- Run `python3 rebuild_all.py` from the `scripts/` directory
+- Check that `etoxpred/custom_scores.csv` exists (created by training step)
 - Verify CSV files from etoxpred folder have correct headers
 
 ## Performance Tips

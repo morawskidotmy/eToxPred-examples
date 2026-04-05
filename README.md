@@ -1,12 +1,18 @@
 # Chemical Database Browser
 
-An interactive web-based database for exploring chemical compounds across multiple toxicological and pharmacological categories. Browse 4,000+ chemicals with SMILES notation, toxicity predictions, and custom classification scores.
+An interactive web-based database for exploring chemical compounds across multiple toxicological and pharmacological categories. Browse 3,000+ unique chemicals with SMILES notation, toxicity predictions, and custom classification scores.
 
-![Chemical Database](https://img.shields.io/badge/chemicals-4000%2B-blue) ![Categories-4](https://img.shields.io/badge/categories-4-green)
+![Chemical Database](https://img.shields.io/badge/chemicals-3000%2B-blue) ![Categories-4](https://img.shields.io/badge/categories-4-green)
+
+## ⚠️ Disclaimer
+
+**This database may contain classification errors.** The data was aggregated from multiple sources and some compounds may be incorrectly categorized. If you find a misclassified compound, please [open an issue](../../issues/new) with the compound name and the correct classification.
+
+This is an experimental reference tool, not an authoritative source. Predictions are based on molecular structure pattern matching and have significant limitations. Do not base medical or safety decisions on this data alone.
 
 ## 🧪 Features
 
-- **4,000+ Chemical Compounds** across 4 major categories
+- **3,000+ Chemical Compounds** across 4 major categories (4,177 training entries, deduplicated by SMILES)
 - **SMILES Notation** for each compound with molecular structure data
 - **Toxicity Predictions** using EtoxPred model (tox-score & SA-score)
 - **Custom Classification Scores** for carcinogenicity, psychoactivity, and endocrine disruption
@@ -24,9 +30,9 @@ chemical-database-repo/
 │   └── chemicals.db        # SQLite database with all chemical data
 ├── training_data/
 │   ├── carcinogens.smi            # 806 known carcinogens
-│   ├── endocrine_disruptors.smi   # 821 endocrine disruptors
-│   ├── nootropics.smi             # 1,025 nootropic compounds
-│   └── psychoactive_drugs.smi     # 1,643 psychoactive substances
+│   ├── endocrine_disruptors.smi   # 804 endocrine disruptors
+│   ├── nootropics.smi             # 960 nootropic compounds
+│   └── psychoactive_drugs.smi     # 1,607 psychoactive substances
 ├── etoxpred/
 │   ├── custom_scores.csv   # Classification predictions
 │   └── results_*.csv       # EtoxPred toxicity scores per category
@@ -57,11 +63,10 @@ The database contains a single `chemicals` table:
 | `smiles` | TEXT | SMILES notation (e.g., "CN1C=NC2=C1C(=O)N(C(=O)N2C)C") |
 | `category` | TEXT | Comma-separated categories (nootropic, carcinogen, etc.) |
 | `tox_score` | REAL | EtoxPred toxicity prediction (0-1, higher = more toxic) |
-| `sa_score` | REAL | Synthetic accessibility score (1-10, higher = harder to synthesize) |
+| `sa_score` | REAL | Synthetic accessibility score (0-1, normalized, higher = harder to synthesize) |
 | `carc_score` | REAL | Carcinogenicity prediction (0-1) |
 | `psych_score` | REAL | Psychoactivity prediction (0-1) |
 | `endo_score` | REAL | Endocrine disruption prediction (0-1) |
-| `description` | TEXT | Optional compound description |
 
 ## 📖 How It Works
 
@@ -88,10 +93,10 @@ A single-page application that runs entirely in the browser:
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Nootropics** | 1,025 | Cognitive enhancers, smart drugs, memory supplements |
-| **Psychoactive Drugs** | 1,643 | CNS-active compounds (stimulants, depressants, hallucinogens) |
+| **Nootropics** | 960 | Cognitive enhancers, smart drugs, memory supplements |
+| **Psychoactive Drugs** | 1,607 | CNS-active compounds (stimulants, depressants, hallucinogens) |
 | **Carcinogens** | 806 | Known or suspected cancer-causing agents |
-| **Endocrine Disruptors** | 821 | Compounds that interfere with hormone systems |
+| **Endocrine Disruptors** | 804 | Compounds that interfere with hormone systems |
 
 ### SMILES Format
 
@@ -136,25 +141,53 @@ Machine learning models trained on the labeled training data:
 
 Each classifier is trained as a binary one-vs-rest model:
 
-1. **Features**: Morgan fingerprints (ECFP4, radius=2, 1024 bits) computed via RDKit
+1. **Features**: Morgan fingerprints (ECFP4, radius=2, 1024 bits) via RDKit
 2. **Positives**: Compounds from the target category's `.smi` file
-3. **Negatives**: Compounds from other categories + ~8,900 FDA-approved drugs (label=0 from EtoxPred's training set)
+3. **Negatives**: ~4,900 FDA-approved drugs only (not compounds from other categories, to avoid label leakage)
 4. **Balancing**: Negatives downsampled to 2:1 ratio vs positives
-5. **Model**: ExtraTreesClassifier (400 trees, min_samples_split=10, min_samples_leaf=3, max_features=15)
-6. **Output**: Probability score (0-1) from `predict_proba`
+5. **Split**: 80/20 train/test with **scaffold split** (Murcko decomposition) to prevent structural leakage
+6. **Model**: ExtraTreesClassifier (400 trees, min_samples_split=10, min_samples_leaf=3)
+7. **Output**: Probability score (0-1) from `predict_proba`
+
+Nootropics are **not used in training** (too heterogeneous) — they're only scored by the trained models.
+
+#### Test Set Performance (Scaffold Split)
+
+| Model | ROC-AUC | PR-AUC | Accuracy |
+|-------|---------|--------|----------|
+| Carcinogen | 0.92 | 0.91 | 76% |
+| Psychoactive | 0.86 | 0.72 | 84% |
+| Endocrine Disruptor | 0.82 | 0.69 | 82% |
+
+Note: Recall on positives is moderate (42-53%) due to conservative predictions — the models favor precision over recall.
 
 #### Known Limitations
 
-- **No held-out test set**: Only training accuracy is measured, so generalization is unknown
-- **No scaffold split**: Structurally similar compounds may appear in both positive/negative sets
-- **Cross-category overlap**: A compound in multiple categories (e.g., carcinogen + psychoactive) becomes a negative for one model while being positive in another
-- **Prodrugs invisible**: Structure-based fingerprints can't predict metabolic activation (e.g., 1,4-butanediol → GHB)
+- **Prodrugs invisible**: Structure-based fingerprints can't predict metabolic activation (e.g., 1,4-butanediol → GHB scores only 0.36 despite being psychoactive via metabolism)
+- **Small training sets**: ~700-1100 positives per category limits generalization
+- **FDA negatives bias**: Negatives are biased toward drug-like molecules
 
 ## 🛠️ Dependencies
 
 ### Runtime (Web Interface)
 - None! Pure HTML/CSS/JavaScript
 - sql.js loaded from CDN
+
+### Retraining Models
+
+The training script is in `scripts/`. Uses [uv](https://github.com/astral-sh/uv) for dependency management:
+
+```bash
+cd scripts
+uv sync
+uv run python train_classifiers.py
+```
+
+Or with pip:
+```bash
+pip install rdkit scikit-learn pandas numpy joblib
+python scripts/train_classifiers.py
+```
 
 ## 📝 Data Sources
 
@@ -174,9 +207,9 @@ Contributions welcome! Ways to help:
 
 ## 📄 License
 
-- **Code**: MIT License (scripts and web interface)
+- **Code**: GNU General Public License v3.0 - see [LICENSE](LICENSE)
 - **Data**: Chemical structures from PubChem (public domain)
-- **EtoxPred**: See `etoxpred/LICENSE` for model terms
+- **Models**: EtoxPred and custom classifiers are provided as-is for research use
 
 ## ⚠️ Disclaimer
 

@@ -19,7 +19,15 @@ th:hover{color:#bbb}
 th .arrow{font-size:.7rem;margin-left:.2rem}
 td{padding:.4rem;border-bottom:1px solid #1e1e30;vertical-align:top}
 tr:hover td{background:#1a1a2e}
-.smi{font-family:'Courier New',monospace;font-size:.78rem;word-break:break-all;color:#8899bb;max-width:300px}
+.smi{font-family:'Courier New',monospace;font-size:.78rem;word-break:break-all;color:#8899bb;cursor:pointer}
+.smi:hover{color:#aabbdd}
+.name-cell{cursor:pointer}
+.name-cell:hover{color:#aabbdd}
+.copy-cell{position:relative;min-height:1.2rem}
+.copy-cell .copy-content{display:inline}
+.copy-cell.copying .copy-content{display:none}
+.copy-cell .copied-msg{display:none;color:#5566aa;font-size:.85rem}
+.copy-cell.copying .copied-msg{display:inline}
 .cat{font-size:.75rem}
 .cat span{display:inline-block;padding:1px 5px;margin:1px;border-radius:2px;font-size:.7rem}
 .cat-nootropic{background:#1a3a1a;color:#6c6}
@@ -66,7 +74,7 @@ tr:hover td{background:#1a1a2e}
 <body>
 <div class="wrap">
 <h1>Chemical Database</h1>
-<p class="subtitle">Search compounds by name. Data from PubChem, regulatory agencies, vendor catalogs.</p>
+<p class="subtitle">Search compounds by name. Data from PubChem and regulatory agencies.</p>
 <input type="text" id="q" placeholder="Search chemical name..." autofocus>
 <div class="filters" id="filters"></div>
 <div class="stats" id="stats">Loading database...</div>
@@ -89,7 +97,7 @@ tr:hover td{background:#1a1a2e}
 <div class="guide" id="guide">
 
 <h2>What This Is</h2>
-<p>This is a searchable database of chemical compounds pulled from multiple sources — vendor catalogs, regulatory lists, Wikipedia, PsychonautWiki, TripSit, and various government agencies (IARC, EPA, EU REACH, NTP, and others). Each chemical has been looked up on PubChem to get its SMILES notation, then run through EtoxPred to estimate toxicity.</p>
+<p>This is a searchable database of chemical compounds pulled from multiple sources — regulatory lists, Wikipedia, PsychonautWiki, TripSit, and various government agencies (IARC, EPA, EU REACH, NTP, and others). Each chemical has been looked up on PubChem to get its SMILES notation, then run through EtoxPred to estimate toxicity.</p>
 
 <h2>What the Scores Mean</h2>
 
@@ -107,15 +115,14 @@ tr:hover td{background:#1a1a2e}
 
 <p>Why this matters:</p>
 <ul>
-<li>Easy-to-synthesize compounds (low SAscore) are more likely to actually be available as real products</li>
-<li>Hard-to-synthesize compounds are more expensive and less likely to be what vendors claim they are</li>
-<li>If a vendor is selling something with a very high SAscore cheaply, be skeptical</li>
+<li>Easy-to-synthesize compounds (low SAscore) are more likely to actually be available</li>
+<li>Hard-to-synthesize compounds are more expensive and rare</li>
 </ul>
 
 <h2>Categories</h2>
 <p>Chemicals can appear in multiple categories:</p>
 <ul>
-<li><strong>Nootropic:</strong> Scraped from vendor sites (nootropics suppliers, supplement stores, online pharmacies, peptide vendors), Wikipedia nootropic lists, and Examine.com</li>
+<li><strong>Nootropic:</strong> From Wikipedia nootropic lists, Examine.com, and scientific literature</li>
 <li><strong>Carcinogen:</strong> From IARC Group 1/2A lists, NTP Report on Carcinogens, EU CLP regulation, FDA lists, California Prop 65</li>
 <li><strong>Endocrine Disruptor:</strong> From EU REACH SVHC list, EPA EDSP, TEDX list, Wikipedia</li>
 <li><strong>Psychoactive:</strong> From PsychonautWiki substance index, TripSit factsheets, Wikipedia drug lists</li>
@@ -142,20 +149,37 @@ tr:hover td{background:#1a1a2e}
   const SQL = await initSqlJs(config);
 
   let db;
-  try {
-    const resp = await fetch('chemicals.db');
-    const buf = await resp.arrayBuffer();
-    db = new SQL.Database(new Uint8Array(buf));
-  } catch(e) {
-    document.getElementById('stats').textContent = 'Error loading database: ' + e.message;
-    return;
+  
+  async function loadDatabase(bypassCache = false) {
+    try {
+      const fetchOpts = bypassCache ? {cache: 'reload'} : {};
+      const resp = await fetch('chemicals.db' + (bypassCache ? '?t=' + Date.now() : ''), fetchOpts);
+      const buf = await resp.arrayBuffer();
+      db = new SQL.Database(new Uint8Array(buf));
+      const total = db.exec("SELECT COUNT(*) FROM chemicals")[0].values[0][0];
+      document.getElementById('stats').textContent = total.toLocaleString() + ' chemicals in database' + (bypassCache ? ' (reloaded)' : '');
+      return true;
+    } catch(e) {
+      document.getElementById('stats').textContent = 'Error loading database: ' + e.message;
+      return false;
+    }
   }
-
-  const total = db.exec("SELECT COUNT(*) FROM chemicals")[0].values[0][0];
-  document.getElementById('stats').textContent = total.toLocaleString() + ' chemicals in database';
+  
+  if (!await loadDatabase()) return;
+  
+  document.addEventListener('keydown', async (e) => {
+    if (e.shiftKey && e.key === 'C') {
+      document.getElementById('stats').textContent = 'Reloading database...';
+      if (await loadDatabase(true)) search();
+    }
+  });
 
   let sortCol = 'name', sortDir = 'asc';
-  let selectedCategories = new Set(['nootropic', 'carcinogen', 'endocrine_disruptor', 'psychoactive']);
+  let selectedCategories = new Set();
+  let displayedCount = 0;
+  let allRows = [];
+  let isLoading = false;
+  const BATCH_SIZE = 50;
   const q = document.getElementById('q');
   const tbody = document.getElementById('tbody');
   const empty = document.getElementById('empty');
@@ -166,7 +190,7 @@ tr:hover td{background:#1a1a2e}
   function initFilters() {
     filtersDiv.innerHTML = categories.map(cat => `
       <label class="filter-label">
-        <input type="checkbox" data-category="${cat}" checked>
+        <input type="checkbox" data-category="${cat}">
         ${cat.replace('_', ' ')}
       </label>
     `).join('');
@@ -237,41 +261,86 @@ tr:hover td{background:#1a1a2e}
 
   function search() {
     const term = q.value.trim();
-    let sql, params;
-    const categoryFilter = Array.from(selectedCategories).map(() => "category LIKE ?").join(" OR ");
-    const categoryParams = Array.from(selectedCategories);
+    let sql, params = [];
+    const selCats = Array.from(selectedCategories);
     
-    if (term) {
-      sql = `SELECT name, smiles, category, tox_score, sa_score, carc_score, endo_score, psych_score FROM chemicals WHERE name LIKE ? AND (${categoryFilter}) ORDER BY ${sortCol} ${sortDir} LIMIT 200`;
-      params = ['%' + term + '%', ...categoryParams.map(c => '%' + c + '%')];
+    if (selCats.length === 0) {
+      if (term) {
+        sql = `SELECT name, smiles, category, tox_score, sa_score, carc_score, endo_score, psych_score FROM chemicals WHERE name LIKE ? ORDER BY ${sortCol} ${sortDir}`;
+        params = ['%' + term + '%'];
+      } else {
+        sql = `SELECT name, smiles, category, tox_score, sa_score, carc_score, endo_score, psych_score FROM chemicals ORDER BY ${sortCol} ${sortDir}`;
+      }
     } else {
-      sql = `SELECT name, smiles, category, tox_score, sa_score, carc_score, endo_score, psych_score FROM chemicals WHERE (${categoryFilter}) ORDER BY ${sortCol} ${sortDir} LIMIT 200`;
-      params = categoryParams.map(c => '%' + c + '%');
+      const categoryFilter = selCats.map(() => "category LIKE ?").join(" AND ");
+      if (term) {
+        sql = `SELECT name, smiles, category, tox_score, sa_score, carc_score, endo_score, psych_score FROM chemicals WHERE name LIKE ? AND ${categoryFilter} ORDER BY ${sortCol} ${sortDir}`;
+        params = ['%' + term + '%', ...selCats.map(c => '%' + c + '%')];
+      } else {
+        sql = `SELECT name, smiles, category, tox_score, sa_score, carc_score, endo_score, psych_score FROM chemicals WHERE ${categoryFilter} ORDER BY ${sortCol} ${sortDir}`;
+        params = selCats.map(c => '%' + c + '%');
+      }
     }
-    let rows;
+    
     try {
       const res = db.exec(sql, params);
-      rows = res.length ? res[0].values : [];
-    } catch(e) { rows = []; }
+      allRows = res.length ? res[0].values : [];
+    } catch(e) { allRows = []; }
 
-    if (!rows.length) {
-      tbody.innerHTML = '';
+    displayedCount = 0;
+    tbody.innerHTML = '';
+    
+    if (!allRows.length) {
       empty.style.display = 'block';
       return;
     }
     empty.style.display = 'none';
-    tbody.innerHTML = rows.map(r => {
+    loadMore();
+  }
+
+  function loadMore() {
+    if (isLoading || displayedCount >= allRows.length) return;
+    isLoading = true;
+    
+    const batch = allRows.slice(displayedCount, displayedCount + BATCH_SIZE);
+    const html = batch.map(r => {
       const [name, smiles, category, tox, sa, carc, endo, psych] = r;
       return `<tr>
-        <td>${esc(name)}</td>
-        <td class="smi">${esc(smiles || '')}</td>
+        <td class="name-cell copy-cell" data-copy="${esc(name)}"><span class="copy-content">${esc(name)}</span><span class="copied-msg">Copied</span></td>
+        <td class="smi copy-cell" data-copy="${esc(smiles || '')}"><span class="copy-content">${esc(smiles || '')}</span><span class="copied-msg">Copied</span></td>
         <td class="cat">${catBadges(category)}</td>
         <td class="tri-cell">${makeTriangle(carc, endo, psych)}</td>
         <td class="score ${scoreClass(tox)}">${fmtScore(tox)}</td>
         <td class="score ${scoreClass(sa)}">${fmtScore(sa)}</td>
       </tr>`;
     }).join('');
+    
+    tbody.insertAdjacentHTML('beforeend', html);
+    
+    const newRows = tbody.querySelectorAll('tr:nth-last-child(-n+' + batch.length + ')');
+    newRows.forEach(row => {
+      row.querySelectorAll('.copy-cell').forEach(el => {
+        el.addEventListener('click', async () => {
+          const text = el.dataset.copy;
+          if (!text || el.classList.contains('copying')) return;
+          try {
+            await navigator.clipboard.writeText(text);
+            el.classList.add('copying');
+            setTimeout(() => el.classList.remove('copying'), 1200);
+          } catch(e) {}
+        });
+      });
+    });
+    
+    displayedCount += batch.length;
+    isLoading = false;
   }
+
+  window.addEventListener('scroll', () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+      loadMore();
+    }
+  });
 
   function esc(s) {
     const d = document.createElement('div');
