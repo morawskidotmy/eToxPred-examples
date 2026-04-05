@@ -1,6 +1,6 @@
 # Chemical Database Browser
 
-An interactive web-based database for exploring chemical compounds across multiple toxicological and pharmacological categories. Browse 3,000+ unique chemicals with SMILES notation, toxicity predictions, and custom classification scores.
+An interactive web-based database for exploring chemical compounds across multiple toxicological and pharmacological categories. Browse 3000+ unique chemicals with SMILES notation, toxicity predictions, and custom classification scores.
 
 ![Chemical Database](https://img.shields.io/badge/chemicals-3000%2B-blue) ![Categories-4](https://img.shields.io/badge/categories-4-green)
 
@@ -12,7 +12,7 @@ This is an experimental reference tool, not an authoritative source. Predictions
 
 ## 🧪 Features
 
-- **3,000+ Chemical Compounds** across 4 major categories (4,177 training entries, deduplicated by SMILES)
+- **3000+ Chemical Compounds** across 4 major categories (4,177 training entries, deduplicated by SMILES)
 - **SMILES Notation** for each compound with molecular structure data
 - **Toxicity Predictions** using EtoxPred model (tox-score & SA-score)
 - **Custom Classification Scores** for carcinogenicity, psychoactivity, and endocrine disruption
@@ -30,9 +30,9 @@ chemical-database-repo/
 │   └── chemicals.db        # SQLite database with all chemical data
 ├── training_data/
 │   ├── carcinogens.smi            # 806 known carcinogens
-│   ├── endocrine_disruptors.smi   # 804 endocrine disruptors
-│   ├── nootropics.smi             # 960 nootropic compounds
-│   └── psychoactive_drugs.smi     # 1,607 psychoactive substances
+│   ├── endocrine_disruptors.smi   # 805 endocrine disruptors
+│   ├── nootropics.smi             # 958 nootropic compounds
+│   └── psychoactive_drugs.smi     # 1607 psychoactive substances
 ├── etoxpred/
 │   ├── custom_scores.csv   # Classification predictions
 │   └── results_*.csv       # EtoxPred toxicity scores per category
@@ -93,10 +93,10 @@ A single-page application that runs entirely in the browser:
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Nootropics** | 960 | Cognitive enhancers, smart drugs, memory supplements |
-| **Psychoactive Drugs** | 1,607 | CNS-active compounds (stimulants, depressants, hallucinogens) |
+| **Nootropics** | 958 | Cognitive enhancers, smart drugs, memory supplements |
+| **Psychoactive Drugs** | 1607 | CNS-active compounds (stimulants, depressants, hallucinogens) |
 | **Carcinogens** | 806 | Known or suspected cancer-causing agents |
-| **Endocrine Disruptors** | 804 | Compounds that interfere with hormone systems |
+| **Endocrine Disruptors** | 805 | Compounds that interfere with hormone systems |
 
 ### SMILES Format
 
