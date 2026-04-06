@@ -30,9 +30,9 @@ chemical-database-repo/
 │   └── chemicals.db        # SQLite database with all chemical data
 ├── training_data/
 │   ├── carcinogens.smi            # 806 known carcinogens
-│   ├── endocrine_disruptors.smi   # 805 endocrine disruptors
-│   ├── nootropics.smi             # 958 nootropic compounds
-│   └── psychoactive_drugs.smi     # 1607 psychoactive substances
+│   ├── endocrine_disruptors.smi   # 840 endocrine disruptors
+│   ├── nootropics.smi             # 887 nootropic compounds
+│   └── psychoactive_drugs.smi     # 1616 psychoactive substances
 ├── etoxpred/
 │   ├── custom_scores.csv   # Classification predictions
 │   └── results_*.csv       # EtoxPred toxicity scores per category
@@ -93,10 +93,10 @@ A single-page application that runs entirely in the browser:
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Nootropics** | 958 | Cognitive enhancers, smart drugs, memory supplements |
-| **Psychoactive Drugs** | 1607 | CNS-active compounds (stimulants, depressants, hallucinogens) |
+| **Nootropics** | 887 | Cognitive enhancers, smart drugs, memory supplements |
+| **Psychoactive Drugs** | 1616 | CNS-active compounds (stimulants, depressants, hallucinogens) |
 | **Carcinogens** | 806 | Known or suspected cancer-causing agents |
-| **Endocrine Disruptors** | 805 | Compounds that interfere with hormone systems |
+| **Endocrine Disruptors** | 840 | Compounds that interfere with hormone systems |
 
 ### SMILES Format
 
