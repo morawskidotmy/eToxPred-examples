@@ -1,4 +1,4 @@
-# Chemical Database Browser
+# eToxPred custom models and predictions
 
 An interactive web-based database for exploring chemical compounds across multiple toxicological and pharmacological categories. Browse 3000+ unique chemicals with SMILES notation, toxicity predictions, and custom classification scores.
 
