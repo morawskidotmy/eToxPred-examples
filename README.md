@@ -225,7 +225,7 @@ Always consult authoritative sources (EPA, FDA, ECHA) and perform proper experim
 
 - [SMILES Notation](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system)
 - [PubChem](https://pubchem.ncbi.nlm.nih.gov/)
-- [EtoxPred](https://github.com/srijitseal/EtoxPred)
+- [EtoxPred](https://github.com/pulimeng/eToxPred)
 - [sql.js](https://sql.js.org/)
 
 ---
