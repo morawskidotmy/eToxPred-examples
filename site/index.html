@@ -130,6 +130,20 @@ tr:hover td{background:#1a1a2e}
 
 <p>A chemical appearing in the carcinogen list doesn't necessarily mean it causes cancer in humans at normal exposure levels — IARC classifications are hazard-based, not risk-based. Similarly, something listed as an endocrine disruptor means it has the <em>potential</em> to interfere with hormonal systems, but dose and exposure route matter enormously.</p>
 
+<h2>Reading the Triangle Graph</h2>
+<p>Each chemical gets a small triangle (CEP) chart showing three independent scores at a glance — <strong>C</strong>arcinogenic (top, red), <strong>E</strong>ndocrine disruptor (bottom-left, gold), and <strong>P</strong>sychoactive (bottom-right, blue). Each score ranges from 0 to 1.</p>
+
+<p>The outer triangle is the reference boundary (all scores at 1.0). The inner shaded polygon shows the compound's actual scores. Each vertex is pulled from the center toward its corner proportional to the score:</p>
+<ul>
+<li>A vertex sitting at the <strong>center</strong> means that score is <strong>0</strong> — no signal</li>
+<li>A vertex touching the <strong>outer edge</strong> means that score is <strong>1</strong> — maximum signal</li>
+<li>A <strong>tiny</strong> inner triangle near the center → low scores across the board</li>
+<li>A <strong>large</strong> inner triangle filling the outline → high scores across the board</li>
+<li>A lopsided shape pulled toward one corner → that particular axis dominates</li>
+</ul>
+
+<p>The exact values are shown below the graph as <code>C:0.xx E:0.xx P:0.xx</code>. These scores come from sub-models trained on category-specific datasets, so they are independent of the overall Tox-score. A compound can have a low Tox-score but still show a high score on one of these axes, or vice versa.</p>
+
 <h2>How to Use This</h2>
 <ol>
 <li>Search for a chemical you're curious about</li>

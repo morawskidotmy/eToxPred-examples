@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "rdkit>=2023.9.1",
+#     "scikit-learn>=1.3.0",
+#     "pandas>=2.0.0",
+#     "numpy>=1.24.0",
+#     "joblib>=1.3.0",
+# ]
+# ///
 import csv
 import os
 from collections import defaultdict
