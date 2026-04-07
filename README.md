@@ -29,8 +29,8 @@ chemical-database-repo/
 │   ├── index.html          # Main web interface
 │   └── chemicals.db        # SQLite database with all chemical data
 ├── training_data/
-│   ├── carcinogens.smi            # 806 known carcinogens
-│   ├── endocrine_disruptors.smi   # 840 endocrine disruptors
+│   ├── carcinogens.smi            # 736 known carcinogens
+│   ├── endocrine_disruptors.smi   # 732 endocrine disruptors
 │   ├── nootropics.smi             # 887 nootropic compounds
 │   └── psychoactive_drugs.smi     # 1616 psychoactive substances
 ├── etoxpred/
@@ -95,8 +95,8 @@ A single-page application that runs entirely in the browser:
 |----------|-------|-------------|
 | **Nootropics** | 887 | Cognitive enhancers, smart drugs, memory supplements |
 | **Psychoactive Drugs** | 1616 | CNS-active compounds (stimulants, depressants, hallucinogens) |
-| **Carcinogens** | 806 | Known or suspected cancer-causing agents |
-| **Endocrine Disruptors** | 840 | Compounds that interfere with hormone systems |
+| **Carcinogens** | 736 | Known or suspected cancer-causing agents |
+| **Endocrine Disruptors** | 732 | Compounds that interfere with hormone systems |
 
 ### SMILES Format
 
