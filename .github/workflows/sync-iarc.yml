@@ -1,0 +1,110 @@
+name: Sync IARC Carcinogens
+
+on:
+  repository_dispatch:
+    types: [iarc-updated]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch IARC Group 1 data
+        uses: actions/checkout@v4
+        with:
+          repository: morawskidotmy/iarc-smiles
+          path: iarc-smiles
+          sparse-checkout: data/group1.smi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Merge IARC data into carcinogens.smi
+        run: |
+          python3 -c "
+          from pathlib import Path
+          
+          # Load existing
+          existing = {}
+          smi = Path('training_data/carcinogens.smi')
+          for line in smi.read_text().splitlines():
+              line = line.strip()
+              if not line:
+                  continue
+              parts = line.split('\t', 1)
+              if len(parts) == 2:
+                  existing[parts[0]] = parts[1]
+          
+          before = len(existing)
+          
+          # Load IARC group1
+          iarc = Path('iarc-smiles/data/group1.smi')
+          if iarc.exists():
+              for line in iarc.read_text().splitlines():
+                  line = line.strip()
+                  if not line:
+                      continue
+                  parts = line.split('\t', 1)
+                  if len(parts) == 2 and parts[0] not in existing:
+                      existing[parts[0]] = parts[1]
+          
+          after = len(existing)
+          new = after - before
+          print(f'Before: {before}, After: {after}, New: {new}')
+          
+          # Write sorted by name
+          with open(smi, 'w') as f:
+              for smiles, name in sorted(existing.items(), key=lambda x: x[1]):
+                  f.write(f'{smiles}\t{name}\n')
+          
+          # Set output
+          import os
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'new_count={new}\n')
+          "
+
+      - name: Check for changes
+        id: check
+        run: |
+          git diff --quiet training_data/carcinogens.smi || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Install rebuild dependencies
+        if: steps.check.outputs.changed == 'true'
+        run: pip install rdkit scikit-learn pandas numpy joblib
+
+      - name: Rebuild database
+        if: steps.check.outputs.changed == 'true'
+        run: python scripts/rebuild_all.py
+
+      - name: Commit and push
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add training_data/carcinogens.smi site/chemicals.db etoxpred/
+          git commit -m "chore: sync IARC Group 1 carcinogens
+
+          New chemicals added from IARC data.
+
+          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          git push
+
+      - name: Summary
+        run: |
+          echo "## IARC Sync Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          TOTAL=$(wc -l < training_data/carcinogens.smi)
+          echo "- Total carcinogens: $TOTAL" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check.outputs.changed }}" == "true" ]; then
+            echo "✅ New chemicals synced and database rebuilt" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No new chemicals to sync" >> $GITHUB_STEP_SUMMARY
+          fi
