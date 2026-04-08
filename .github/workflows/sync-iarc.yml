@@ -15,12 +15,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch IARC Group 1 data
+      - name: Fetch IARC Group 1, 2A, 2B data
         uses: actions/checkout@v4
         with:
-          repository: morawskidotmy/iarc-smiles
+          repository: morawskidotmy/IARC-SMILES
           path: iarc-smiles
-          sparse-checkout: data/group1.smi
+          sparse-checkout: |
+            data/group1.smi
+            data/group2a.smi
+            data/group2b.smi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -45,16 +48,17 @@ jobs:
           
           before = len(existing)
           
-          # Load IARC group1
-          iarc = Path('iarc-smiles/data/group1.smi')
-          if iarc.exists():
-              for line in iarc.read_text().splitlines():
-                  line = line.strip()
-                  if not line:
-                      continue
-                  parts = line.split('\t', 1)
-                  if len(parts) == 2 and parts[0] not in existing:
-                      existing[parts[0]] = parts[1]
+          # Load IARC groups 1, 2A, 2B
+          for group_file in ['group1.smi', 'group2a.smi', 'group2b.smi']:
+              iarc = Path(f'iarc-smiles/data/{group_file}')
+              if iarc.exists():
+                  for line in iarc.read_text().splitlines():
+                      line = line.strip()
+                      if not line:
+                          continue
+                      parts = line.split('\t', 1)
+                      if len(parts) == 2 and parts[0] not in existing:
+                          existing[parts[0]] = parts[1]
           
           after = len(existing)
           new = after - before
@@ -90,7 +94,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add training_data/carcinogens.smi site/chemicals.db etoxpred/
-          git commit -m "chore: sync IARC Group 1 carcinogens
+          git commit -m "chore: sync IARC Group 1/2A/2B carcinogens
 
           New chemicals added from IARC data.
 
